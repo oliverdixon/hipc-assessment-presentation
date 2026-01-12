@@ -1,0 +1,89 @@
+% OWD 2026
+% HIPC Assessment Presentation
+
+\documentclass{beamer}
+
+\usepackage{minted, calc}
+\usepackage[en-GB]{datetime2}
+\usepackage[
+    backend=biber,
+    style=authoryear,
+    citestyle=authoryear,
+    bibencoding=utf8
+]{biblatex}
+
+\addbibresource{references.bib}
+\usetheme{CambridgeUS}
+\setbeamertemplate{caption}[numbered]
+\numberwithin{figure}{section}
+\beamerdefaultoverlayspecification{<+->}
+\setbeamertemplate{navigation symbols}{}
+
+\newcounter{firstsrcline}
+\newcounter{lastsrcline}
+\newcommand\srclinelimit{29}
+\newcommand\resetsrclines{%
+    \setcounter{firstsrcline}{1}
+    \setcounter{lastsrcline}{\thefirstsrcline+\srclinelimit}
+}
+\newcommand\continuesource[1]{%
+    \inputminted[firstline=\thefirstsrcline, lastline=\thelastsrcline,
+        firstnumber=\thefirstsrcline]{c}{listings/#1}
+    \setcounter{firstsrcline}{\thelastsrcline+1}
+    \setcounter{lastsrcline}{\thefirstsrcline+\srclinelimit}
+}
+\renewcommand\theFancyVerbLine{\color{gray}\slshape\arabic{FancyVerbLine}}
+\setminted{
+    fontsize=\tiny,
+    style=vs,
+    linenos,
+    numbersep=8pt,
+    xleftmargin=12pt,
+}
+
+\hypersetup{
+    colorlinks,
+    allcolors=.,
+    urlcolor=gray,
+}
+
+\title{Review of Parallelised CFD Solvers}
+\date{\today}
+\author[Oliver Dixon]{
+    \texorpdfstring{Oliver Dixon \raisebox{.5pt}{%
+        \texttt{\footnotesize\href{mailto:Oliver Dixon <od641@york.ac.uk>}
+            {<od641@york.ac.uk>}}
+    }}{Oliver Dixon}}
+\institute[University of York]{Department of Computer Science, University of York}
+\subtitle{HIPC-H Assignment Presentation}
+
+\begin{document}
+\frame{\titlepage}
+\section{Optimisation and Parallelisation Approach}
+\begin{frame}
+    \frametitle{Analysis and Optimisation of the Serial Implementation (1)}
+    \begin{itemize}
+        \item The serial implementation provides a validated baseline for
+            iterative computation of velocity vectors and pressure scalars
+            around a rigid body specified as a NACA airfoil.
+        \item For successive time-steps, the solver executes a series of
+            sub-routines to numerically improve upon the simulation state:
+            \begin{enumerate}
+                \item Apply \emph{no-slip} boundary conditions;
+                \item Compute tentative velocities;
+                \item Compute the forcing term for the Poisson equation;
+                \item Iteratively solve the Poisson PDE to provide pressure
+                    scalars;
+                \item Update velocity estimates according to tentative values
+                    and neighbouring pressures.
+            \end{enumerate}
+        \item This is a standard approach in CFD applications and most of these
+            sub-routines are \emph{embarrassingly
+            parallel}\footfullcite{Griebel:1998}.
+    \end{itemize}
+\end{frame}
+\section{Validation of Correctness}
+\section{Performance Analysis}
+\section{Performance Comparison and Discussion}
+\end{document}
+
