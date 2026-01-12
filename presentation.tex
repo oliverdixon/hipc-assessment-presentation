@@ -3,7 +3,7 @@
 
 \documentclass{beamer}
 
-\usepackage{minted, calc}
+\usepackage{minted, calc, booktabs}
 \usepackage[en-GB]{datetime2}
 \usepackage[
     backend=biber,
@@ -84,6 +84,133 @@
 \end{frame}
 \section{Validation of Correctness}
 \section{Performance Analysis}
+%
+% SERIAL
+%
+\begin{frame}
+    \frametitle{Execution and Test Environment}
+    \begin{itemize}
+        \item Exclusive node on Viking HPC cluster
+        \item Dual AMD EPYC 7643 48-Core processors
+            \begin{itemize}
+                \item Total of 96 cores at 2.3GHz
+                \item CPU has AVX2 capability for 256-bit SIMD vector registers
+                \item 510GB of usable RAM
+            \end{itemize}
+        \item IntelLLVM 2024 OneAPI compiler
+        \item All CFD applications built to \emph{Release} mode
+            \begin{itemize}
+                \item Fast math optimisations
+                \item Debugging symbols included
+                \item Aggressive vectorisation
+            \end{itemize}
+        \item All executions run for two seconds of simulation time with a
+            dynamic time-step $\delta t$.
+        \item Serialisation disabled during gathering of performance counters
+    \end{itemize}
+\end{frame}
+\begin{frame}
+    \frametitle{Serial Performance ($256\text{px} \times 64\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & 3.98 & 100 \\
+        \midrule
+        SOR (pressure) & 3.87 & 98.2 \\
+        Tentative Velocities & 0.06 & 1.5 \\
+        Poisson Source & 0.02 & 0.5
+    \end{tabular}
+    \begin{figure}
+        \includegraphics[width=.9\linewidth]{roofline/serial_256x64}
+    \end{figure}
+\end{frame}
+\begin{frame}
+    \frametitle{Serial Performance ($512\text{px} \times 128\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & 31.37 & 100 \\
+        \midrule
+        SOR (pressure) & 30.78 & 98.1 \\
+        Tentative Velocities & 0.44 & 1.4 \\
+        Poisson Source & 0.11 & 0.4
+    \end{tabular}
+    \begin{figure}
+        \includegraphics[width=.9\linewidth]{roofline/serial_512x128}
+    \end{figure}
+\end{frame}
+\begin{frame}
+    \frametitle{Serial Performance ($1024\text{px} \times 256\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & 382.97 & 100 \\
+        \midrule
+        SOR (pressure) & 375.81 & 98.1 \\
+        Tentative Velocities & 5.16 & 1.3 \\
+        Poisson Source & 1.08 & 0.3
+    \end{tabular}
+    \begin{figure}
+        \includegraphics[width=.9\linewidth]{roofline/serial_1024x256}
+    \end{figure}
+\end{frame}
+%
+% OPENMP
+%
+\begin{frame}
+    \frametitle{OpenMP Performance ($256\text{px} \times 64\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & & \\
+        OpenMP Runtime & & \\
+        \midrule
+        SOR (pressure) & & \\
+        Tentative Velocities & & \\
+        Poisson Source & & 
+    \end{tabular}
+    \begin{figure}
+        \includegraphics[width=.9\linewidth]{roofline/openmp_256x64}
+    \end{figure}
+\end{frame}
+\begin{frame}
+    \frametitle{OpenMP Performance ($512\text{px} \times 128\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & & \\
+        OpenMP Runtime & & \\
+        \midrule
+        SOR (pressure) & & \\
+        Tentative Velocities & & \\
+        Poisson Source & & 
+    \end{tabular}
+    \begin{figure}
+        \includegraphics[width=.9\linewidth]{roofline/openmp_512x128}
+    \end{figure}
+\end{frame}
+\begin{frame}
+    \frametitle{OpenMP Performance ($1024\text{px} \times 256\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & & \\
+        OpenMP Runtime & & \\
+        \midrule
+        SOR (pressure) & & \\
+        Tentative Velocities & & \\
+        Poisson Source & & 
+    \end{tabular}
+    \begin{figure}
+        \includegraphics[width=.9\linewidth]{roofline/openmp_1024x256}
+    \end{figure}
+\end{frame}
 \section{Performance Comparison and Discussion}
 \end{document}
 
