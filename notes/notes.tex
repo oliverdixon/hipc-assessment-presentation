@@ -1,0 +1,38 @@
+\documentclass[a4paper]{article}
+\usepackage{setspace}
+\doublespacing
+
+\begin{document}
+\section*{Optimisation and Parallelisation Approach}
+\subsection*{Analysis of the Serial Implementation}
+\begin{itemize}
+    \item The serial implementation is based on Griebel's Nast2D software,
+        provided in C and FORTRAN. For a given NACA airfoil body in a fixed-size
+        problem space, the software iteratively solves for the two-dimensional
+        velocity vectors and pressure scalars under a continuous west-to-east
+        inward flow of incompressible fluid.
+\end{itemize}
+\subsection*{OpenMP Implementation Strategy}
+\subsection*{Validation of Correctness}
+\begin{itemize}
+    \item To validate correctness, we visually inspect the VTK results produced
+        by the serialiser. Automatic validation, such as using \texttt{diff}, is
+        not useful here due to minor deviations in floating-point accuracy,
+        compounded by the \emph{fast math} LLVM optimisations.
+    \item In all cases but MPI, a single CPU thread produces the file. MPI makes
+        use of the VTK's parallel writer capability in which each rank can
+        produce independent files, then stitched together by metadata provided
+        to the visualiser.
+    \item Up to floating-point accuracy, all ports produce the same output for
+        the test cases described here.
+\end{itemize}
+\section*{Performance Analysis}
+\subsection*{Execution and Test Environment}
+\subsection*{Serial Performance}
+\subsection*{OpenMP Performance}
+\subsection*{MPI Performance}
+\subsection*{CUDA Performance}
+
+\section*{Performance Comparison and Discussion}
+\end{document}
+
