@@ -3,7 +3,7 @@
 
 \documentclass{beamer}
 
-\usepackage{minted, calc, booktabs}
+\usepackage{listings, calc, booktabs}
 \usepackage[en-GB]{datetime2}
 \usepackage[
     backend=biber,
@@ -19,33 +19,33 @@
 \beamerdefaultoverlayspecification{<+->}
 \setbeamertemplate{navigation symbols}{}
 
-\newcounter{firstsrcline}
-\newcounter{lastsrcline}
-\newcommand\srclinelimit{29}
-\newcommand\resetsrclines{%
-    \setcounter{firstsrcline}{1}
-    \setcounter{lastsrcline}{\thefirstsrcline+\srclinelimit}
-}
-\newcommand\continuesource[1]{%
-    \inputminted[firstline=\thefirstsrcline, lastline=\thelastsrcline,
-        firstnumber=\thefirstsrcline]{c}{listings/#1}
-    \setcounter{firstsrcline}{\thelastsrcline+1}
-    \setcounter{lastsrcline}{\thefirstsrcline+\srclinelimit}
-}
-\renewcommand\theFancyVerbLine{\color{gray}\slshape\arabic{FancyVerbLine}}
-\setminted{
-    fontsize=\tiny,
-    style=vs,
-    linenos,
-    numbersep=8pt,
-    xleftmargin=12pt,
-}
-
 \hypersetup{
     colorlinks,
     allcolors=.,
     urlcolor=gray,
 }
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+
+\lstdefinestyle{mystyle}{
+    otherkeywords={compute\_t,\#pragma,schedule,nowait,collapse,indexer\_t},
+    columns=fullflexible,
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    basicstyle=\ttfamily\tiny,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
 
 \title{Review of Parallelised CFD Solvers}
 \date{\today}
@@ -61,7 +61,7 @@
 \frame{\titlepage}
 \section{Optimisation and Parallelisation Approach}
 \begin{frame}
-    \frametitle{Analysis and Optimisation of the Serial Implementation (1)}
+    \frametitle{Analysis of the Serial Implementation}
     \begin{itemize}
         \item The serial implementation provides a validated baseline for
             iterative computation of velocity vectors and pressure scalars
@@ -82,11 +82,66 @@
             parallel}\footfullcite{Griebel:1998}.
     \end{itemize}
 \end{frame}
-\section{Validation of Correctness}
+\begin{frame}
+    \frametitle{OpenMP Implementation Strategy (1)}
+    \begin{itemize}
+        \item On-node parallelism has no significant implementation-level
+            deviations from the serial equivalent.
+        \item Efforts primarily aimed at Red-Black SOR routine.
+            \begin{itemize}
+                \item Analysis with the \emph{Intel Advisor} indicated that the
+                    OneAPI compiler could not vectorise the Nast2D
+                    implementation.
+                \item Minimised branching and packed neighbouring values into
+                    arrays to encourage usage of AVX2 registers.
+                \item Existing use of red-black colouring scheme reduces natural
+                    data dependencies \footfullcite{Sparsh:2014}.
+            \end{itemize}
+        \item Where the \emph{Advisor} and \emph{VTune} suggested advantageous,
+            OpenMP with static loop-scheduling and collapsing was used.
+        \item Where there were no data dependencies between parallel regions,
+            asynchronous OMP was used to eliminate implicit barriers.
+    \end{itemize}
+\end{frame}
+\begin{frame}[fragile]
+    \frametitle{OpenMP Implementation Strategy (2)}
+    \begin{center}
+        \begin{minipage}{.7\textwidth}
+            \lstinputlisting[language=C]{code-samples/omp-async-loop.c}
+        \end{minipage}
+
+        Dependency-Free Loop Pair with Asynchronous OMP Parallel Regions
+    \end{center}
+\end{frame}
+\begin{frame}
+    \frametitle{Validation of Correctness (1)}
+    \begin{itemize}
+        \item In all ports, a VTK serialiser was implemented to produce vector
+            and scalar vector fields viewable in \emph{LLNL VisIt}.
+        \item OpenMPI and CUDA collect the entirety of the data-set onto a
+            single host thread following computation and serialises into a
+            single XML VTR (VTK rectangle) ASCII file.
+        \item MPI uses VTR-P files to distribute results into separate files,
+            each written by their respective node, which are collated by a
+            metadata file produced by the master rank\footfullcite{VTK:2021}.
+            \begin{itemize}
+                \item Avoids complexity of MPI file-handling routines.
+                \item Supported by all major implementations of the VTK format.
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+\begin{frame}
+    \frametitle{Validation of Correctness (2)}
+    \begin{figure}
+        \includegraphics[width=.8\linewidth]{output/velocities}
+        \caption{Velocity Magnitudes}
+    \end{figure}
+    \begin{figure}
+        \includegraphics[width=.8\linewidth]{output/pressures}
+        \caption{Pressure Scalars}
+    \end{figure}
+\end{frame}
 \section{Performance Analysis}
-%
-% SERIAL
-%
 \begin{frame}
     \frametitle{Execution and Test Environment}
     \begin{itemize}
@@ -96,6 +151,7 @@
                 \item Total of 96 cores at 2.3GHz
                 \item CPU has AVX2 capability for 256-bit SIMD vector registers
                 \item 510GB of usable RAM
+                \item NVIDIA H100 GPU
             \end{itemize}
         \item IntelLLVM 2024 OneAPI compiler
         \item All CFD applications built to \emph{Release} mode
@@ -104,8 +160,9 @@
                 \item Debugging symbols included
                 \item Aggressive vectorisation
             \end{itemize}
-        \item All executions run for two seconds of simulation time with a
-            dynamic time-step $\delta t$.
+        \item All executions run for two seconds of simulation time in a
+            $4\text{m} \times 1\text{m}$ space with a dynamic time-step $\delta
+            t$.
         \item Serialisation disabled during gathering of performance counters
     \end{itemize}
 \end{frame}
@@ -157,9 +214,6 @@
         \includegraphics[width=.9\linewidth]{roofline/serial_1024x256}
     \end{figure}
 \end{frame}
-%
-% OPENMP
-%
 \begin{frame}
     \frametitle{OpenMP Performance ($256\text{px} \times 64\text{px}$)}
     \centering
@@ -200,8 +254,8 @@
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & \\
-        OpenMP Runtime & & \\
+        Total & 43.51 & 100 \\
+        OpenMP Runtime &  & \\
         \midrule
         SOR (pressure) & & \\
         Tentative Velocities & & \\
