@@ -203,9 +203,6 @@ _minted*
 # pax
 *.pax
 
-# pdfpcnotes
-*.pdfpc
-
 # sagetex
 *.sagetex.sage
 *.sagetex.py

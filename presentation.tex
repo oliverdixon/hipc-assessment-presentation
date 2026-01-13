@@ -1,11 +1,7 @@
 % OWD 2026
 % HIPC Assessment Presentation
 
-% TODO: CUDA timings for graph
-% TODO: CUDA timings breakdowns
-% TODO: CUDA roofline plots
-
-\documentclass{beamer}
+\documentclass[aspectratio=169]{beamer}
 
 \usepackage{listings, calc, booktabs, pgfplots}
 \usepackage[en-GB]{datetime2}
@@ -116,10 +112,22 @@
 \begin{frame}
     \frametitle{OpenMP Implementation Strategy (2)}
     \begin{center}
-        \begin{minipage}{.7\textwidth}
+        \begin{figure}
+            \includegraphics[width=.5\linewidth]{intel-tools/scalar-advisor}
+            \caption{Scalar SOR implementation}
+        \end{figure}
+        \begin{figure}
+            \includegraphics[width=.5\linewidth]{intel-tools/avx-advisor}
+            \caption{Vectorised SOR implementation}
+        \end{figure}
+    \end{center}
+\end{frame}
+\begin{frame}
+    \frametitle{OpenMP Implementation Strategy (3)}
+    \begin{center}
+        \begin{minipage}{.6\textwidth}
             \lstinputlisting[language=C]{code-samples/omp-async-loop.c}
-        \end{minipage}
-
+        \end{minipage}\vfill%
         Dependency-Free Loop Pair with Asynchronous OMP Parallel Regions
 
         \footnotesize\texttt{openmp/region.c:region\_update\_velocities}
@@ -146,7 +154,7 @@
 \begin{frame}
     \frametitle{MPI Implementation Strategy (2)}
     \begin{center}
-        \begin{minipage}{.85\textwidth}
+        \begin{minipage}{.66\textwidth}
             \lstinputlisting[language=C]{code-samples/mpi-maximise.c}
         \end{minipage}\vfill%
         Maximising velocities across ranks
@@ -176,12 +184,10 @@
 \begin{frame}
     \frametitle{CUDA Implementation Strategy (2)}
     \begin{center}
-        \begin{minipage}{.85\textwidth}
+        \begin{minipage}{.6\textwidth}
             \lstinputlisting[language=C]{code-samples/cuda-reduction.cu}
         \end{minipage}\vfill%
         Shared-memory reduction across thread blocks
-
-        \footnotesize\texttt{cuda/DeviceRegion.cu:kernels::reduce\_sum\_kernel<class T>}
     \end{center}
 \end{frame}
 \begin{frame}
@@ -189,9 +195,9 @@
     \begin{itemize}
         \item In all ports, a VTK serialiser was implemented to produce vector
             and scalar vector fields viewable in \emph{LLNL VisIt}.
-        \item OpenMPI and CUDA collect the entirety of the data-set onto a
-            single host thread following computation and serialises into a
-            single XML VTR (VTK rectangle) ASCII file.
+        \item OpenMP and CUDA collect the entirety of the data-set onto a single
+            host thread following computation and serialises into a single XML
+            VTR (VTK rectangle) ASCII file.
         \item MPI uses VTR-P files to distribute results into separate files,
             each written by their respective node, which are collated by a
             metadata file produced by the master rank\footfullcite{VTK:2021}.
@@ -204,12 +210,11 @@
 \begin{frame}
     \frametitle{Validation of Correctness (2)}
     \begin{figure}
-        \includegraphics[width=.8\linewidth]{output/velocities}
+        \includegraphics[width=.6\linewidth]{output/velocities}
         \caption{Velocity Magnitudes}
     \end{figure}
-    \pause%
     \begin{figure}
-        \includegraphics[width=.8\linewidth]{output/pressures}
+        \includegraphics[width=.6\linewidth]{output/pressures}
         \caption{Pressure Scalars}
     \end{figure}
 \end{frame}
@@ -240,7 +245,7 @@
 \end{frame}
 \begin{frame}
     \frametitle{Serial Performance ($256\text{px} \times 64\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -251,12 +256,12 @@
         Poisson Source & 0.02 & 0.5
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/serial_256x64}
+        \includegraphics[width=.7\linewidth]{roofline/serial_256x64}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{Serial Performance ($512\text{px} \times 128\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -267,12 +272,12 @@
         Poisson Source & 0.11 & 0.4
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/serial_512x128}
+        \includegraphics[width=.7\linewidth]{roofline/serial_512x128}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{Serial Performance ($1024\text{px} \times 256\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -283,12 +288,12 @@
         Poisson Source & 1.08 & 0.3
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/serial_1024x256}
+        \includegraphics[width=.7\linewidth]{roofline/serial_1024x256}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{OpenMP Performance ($256\text{px} \times 64\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -300,12 +305,12 @@
         Poisson residual & 1.09 & 16.03
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.8\linewidth]{roofline/openmp_256x64}
+        \includegraphics[width=.6\linewidth]{roofline/openmp_256x64}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{OpenMP Performance ($512\text{px} \times 128\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -317,12 +322,12 @@
         Poisson residual & 1.57 & 13.47
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.8\linewidth]{roofline/openmp_512x128}
+        \includegraphics[width=.6\linewidth]{roofline/openmp_512x128}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{OpenMP Performance ($1024\text{px} \times 256\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -334,12 +339,12 @@
         Poisson residual & 6.01 & 14.3
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.8\linewidth]{roofline/openmp_1024x256}
+        \includegraphics[width=.6\linewidth]{roofline/openmp_1024x256}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{MPI Performance ($256\text{px} \times 64\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -351,12 +356,12 @@
         Reductions & 0.18 & 15.9
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.8\linewidth]{roofline/mpi_256x64}
+        \includegraphics[width=.6\linewidth]{roofline/mpi_256x64}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{MPI Performance ($512\text{px} \times 128\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -368,12 +373,12 @@
         Reductions & 1.03 & 40.3
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.8\linewidth]{roofline/mpi_512x128}
+        \includegraphics[width=.6\linewidth]{roofline/mpi_512x128}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{MPI Performance ($1024\text{px} \times 256\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
@@ -385,73 +390,51 @@
         Reductions & 2.01 & 22.3
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.8\linewidth]{roofline/mpi_1024x256}
+        \includegraphics[width=.6\linewidth]{roofline/mpi_1024x256}
     \end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{CUDA Performance ($256\text{px} \times 64\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & 100 \\
+        Total & 0.29 & 100 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        Device memory allocation & 0.17 & 57.7 \\
+        Kernel execution & 0.12 & 42.2 \\
+        Data copying & 0.0002 & 0.1
     \end{tabular}
-    %\begin{figure}
-    %    \includegraphics[width=.9\linewidth]{roofline/cuda_256x64}
-    %\end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{CUDA Performance ($512\text{px} \times 128\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & 100 \\
+        Total & 0.29 & 100 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        Device memory allocation & 0.17 & 57.7 \\
+        Kernel execution & 0.12 & 41.8 \\
+        Data copying & 0.0007 & 0.3
     \end{tabular}
-    %\begin{figure}
-    %    \includegraphics[width=.9\linewidth]{roofline/cuda_512x128}
-    %\end{figure}
 \end{frame}
 \begin{frame}
     \frametitle{CUDA Performance ($1024\text{px} \times 256\text{px}$)}
-    \centering
+    \centering\footnotesize%
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & 100 \\
+        Total & 0.42 & 100 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        Device memory allocation & 0.3 & 70.2 \\
+        Kernel execution & 0.12 & 28.9 \\
+        Data copying & 0.001 & 0.4
     \end{tabular}
-    %\begin{figure}
-    %    \includegraphics[width=.9\linewidth]{roofline/cuda_1024x256}
-    %\end{figure}
 \end{frame}
 \section{Performance Comparison and Discussion}
 \begin{frame}
     \frametitle{Performance Comparison (1)}
-    \begin{center}
-        \begin{figure}
-            \includegraphics[width=.65\linewidth]{intel-tools/scalar-advisor}
-            \caption{Scalar SOR implementation}
-        \end{figure}
-        \begin{figure}
-            \includegraphics[width=.65\linewidth]{intel-tools/avx-advisor}
-            \caption{Vectorised SOR implementation}
-        \end{figure}
-    \end{center}
-\end{frame}
-\begin{frame}
-    \frametitle{Performance Comparison (2)}
     \begin{center}
         \begin{tikzpicture}
         \begin{axis}[
@@ -491,9 +474,9 @@
 
         % CUDA
         \addplot[fill=cudalegend] coordinates {
-            (256$\times$64, 0)
-            (512$\times$128, 0)
-            (1024$\times$256, 0)
+            (256$\times$64, 0.29)
+            (512$\times$128, 0.29)
+            (1024$\times$256, 0.42)
         };
 
         \legend{Serial, OpenMP, MPI, CUDA}
@@ -503,7 +486,7 @@
     \end{center}
 \end{frame}
 \begin{frame}
-    \frametitle{Performance Comparison (3)}
+    \frametitle{Performance Comparison (2)}
     \begin{center}
         \begin{tikzpicture}
         \begin{axis}[
@@ -536,12 +519,43 @@
 
         % CUDA
         \addplot[fill=cudalegend] coordinates {
-            (256$\times$64, 0)
-            (512$\times$128, 0)
-            (1024$\times$256, 0)
+            (256$\times$64, 0.29)
+            (512$\times$128, 0.29)
+            (1024$\times$256, 0.42)
         };
 
         \legend{OpenMP, MPI, CUDA}
+
+        \end{axis}
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+\begin{frame}
+    \frametitle{Performance Comparison (3)}
+    \begin{center}
+        \begin{tikzpicture}
+        \begin{axis}[
+            ybar=4pt,
+            ylabel={Wall clock runtime (s)},
+            xlabel={Problem space size (px)},
+            symbolic x coords={256$\times$64,512$\times$128,1024$\times$256},
+            xtick=data,
+            ymin=0,
+            legend cell align=left,
+            legend pos=north west,
+            enlarge x limits=0.5,
+            height=0.8\textheight,
+            width=0.9\textwidth
+        ]
+
+        % CUDA
+        \addplot[fill=cudalegend] coordinates {
+            (256$\times$64, 0.29)
+            (512$\times$128, 0.29)
+            (1024$\times$256, 0.42)
+        };
+
+        \legend{CUDA}
 
         \end{axis}
         \end{tikzpicture}
@@ -554,7 +568,7 @@
             \begin{itemize}
                 \item Faster to organise code in CUDA due to features inherited
                     from C++11, 14, and 17.
-                \item OpenMP approx. 1082 LOC; MPI 1940; CUDA 1333.
+                \item OpenMP approx. 1082 LOC; MPI 1940; CUDA 1366.
             \end{itemize}
         \item OpenMP and MPI solutions highly portable at runtime; CUDA
             vendor-locked to proprietary NVIDIA technology.
@@ -567,7 +581,7 @@
                 \item CMake
                 \item CLion
                 \item LLDB remote debugging
-                \item OneAPI userland tools
+                \item OneAPI and NVIDIA userland tools
             \end{itemize}
     \end{itemize}
 \end{frame}
