@@ -90,7 +90,7 @@
         \item Efforts primarily aimed at Red-Black SOR routine.
             \begin{itemize}
                 \item Analysis with the \emph{Intel Advisor} indicated that the
-                    OneAPI compiler could not vectorise the Nast2D
+                    OneAPI compiler could not vectorise the NAST2D
                     implementation.
                 \item Minimised branching and packed neighbouring values into
                     arrays to encourage usage of AVX2 registers.
@@ -103,7 +103,7 @@
             asynchronous OMP was used to eliminate implicit barriers.
     \end{itemize}
 \end{frame}
-\begin{frame}[fragile]
+\begin{frame}
     \frametitle{OpenMP Implementation Strategy (2)}
     \begin{center}
         \begin{minipage}{.7\textwidth}
@@ -111,6 +111,67 @@
         \end{minipage}
 
         Dependency-Free Loop Pair with Asynchronous OMP Parallel Regions
+
+        \footnotesize\texttt{openmp/region.c:region\_update\_velocities}
+    \end{center}
+\end{frame}
+\begin{frame}
+    \frametitle{MPI Implementation Strategy (1)}
+    \begin{itemize}
+        \item Two-dimensional domain decomposition into roughly equally sized
+            portions, each allocated to a rank
+            process\footfullcite{Griebel:1998}.
+            \begin{itemize}
+                \item Automatic computation of subdomain boundaries at runtime
+                \item Subdomains `overlap' to provide ghost rows and columns
+                \item Ghost cells are populated with extremities of neighbouring
+                    regions, achieved with halo exchanges
+                \item Subdomains are marked with flags dependent on their
+                    position within the virtual Cartesian topology
+            \end{itemize}
+        \item Non-blocking communication used where possible; barriers enforced
+            with explicit blocking calls provided by OpenMPI.
+    \end{itemize}
+\end{frame}
+\begin{frame}
+    \frametitle{MPI Implementation Strategy (2)}
+    \begin{center}
+        \begin{minipage}{.85\textwidth}
+            \lstinputlisting[language=C]{code-samples/mpi-maximise.c}
+        \end{minipage}\vfill%
+        Maximising velocities across ranks
+
+        \footnotesize\texttt{mpi/region.c:region\_update\_timestep\_interval}
+    \end{center}
+\end{frame}
+\begin{frame}
+    \frametitle{CUDA Implementation Strategy (1)}
+    \begin{itemize}
+        \item Domain decomposition not explicit as in MPI, but requires careful
+            mapping to ensure memory coalescing.
+            \begin{itemize}
+                \item One-dimensional arrays mapped into a column-major ordering
+                    to index at constant stride offsets.
+                \item Host and device memory explicitly aligned on word/TB
+                    boundaries with \texttt{\_\_align\_\_}.
+            \end{itemize}
+        \item Halo exchanges not required, and reductions occur in shared
+            memory with explicit block-level synchronisation provided by
+            \texttt{\_\_syncthreads}\footfullcite{Harris:2007}. 
+        \item CUDA provides runtime API to dynamically choose optimum block
+            size, based on GPU topology and problem size, with
+            \texttt{cudaOccupancyMaxPotentialBlockSize}.
+    \end{itemize}
+\end{frame}
+\begin{frame}
+    \frametitle{CUDA Implementation Strategy (2)}
+    \begin{center}
+        \begin{minipage}{.85\textwidth}
+            \lstinputlisting[language=C]{code-samples/cuda-reduction.cu}
+        \end{minipage}\vfill%
+        Shared-memory reduction across thread blocks
+
+        \footnotesize\texttt{cuda/DeviceRegion.cu:kernels::reduce\_sum\_kernel<class T>}
     \end{center}
 \end{frame}
 \begin{frame}
@@ -136,6 +197,7 @@
         \includegraphics[width=.8\linewidth]{output/velocities}
         \caption{Velocity Magnitudes}
     \end{figure}
+    \pause%
     \begin{figure}
         \includegraphics[width=.8\linewidth]{output/pressures}
         \caption{Pressure Scalars}
@@ -150,8 +212,8 @@
             \begin{itemize}
                 \item Total of 96 cores at 2.3GHz
                 \item CPU has AVX2 capability for 256-bit SIMD vector registers
-                \item 510GB of usable RAM
                 \item NVIDIA H100 GPU
+                \item 100Gb Intel Omni-Path node interconnect
             \end{itemize}
         \item IntelLLVM 2024 OneAPI compiler
         \item All CFD applications built to \emph{Release} mode
@@ -313,6 +375,108 @@
         \includegraphics[width=.9\linewidth]{roofline/mpi_1024x256}
     \end{figure}
 \end{frame}
+\begin{frame}
+    \frametitle{CUDA Performance ($256\text{px} \times 64\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & & 100 \\
+        \midrule
+        SOR (pressure) & & \\
+        Tentative Velocities & & \\
+        Poisson Source & & 
+    \end{tabular}
+    %\begin{figure}
+    %    \includegraphics[width=.9\linewidth]{roofline/cuda_256x64}
+    %\end{figure}
+\end{frame}
+\begin{frame}
+    \frametitle{CUDA Performance ($512\text{px} \times 128\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & & 100 \\
+        \midrule
+        SOR (pressure) & & \\
+        Tentative Velocities & & \\
+        Poisson Source & & 
+    \end{tabular}
+    %\begin{figure}
+    %    \includegraphics[width=.9\linewidth]{roofline/cuda_512x128}
+    %\end{figure}
+\end{frame}
+\begin{frame}
+    \frametitle{CUDA Performance ($1024\text{px} \times 256\text{px}$)}
+    \centering
+    \begin{tabular}{lll}
+        \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
+        \toprule
+        Total & & 100 \\
+        \midrule
+        SOR (pressure) & & \\
+        Tentative Velocities & & \\
+        Poisson Source & & 
+    \end{tabular}
+    %\begin{figure}
+    %    \includegraphics[width=.9\linewidth]{roofline/cuda_1024x256}
+    %\end{figure}
+\end{frame}
 \section{Performance Comparison and Discussion}
+\begin{frame}
+    \frametitle{Performance Comparison (1)}
+    \begin{center}
+        \begin{figure}
+            \includegraphics[width=.65\linewidth]{intel-tools/scalar-advisor}
+            \caption{Scalar SOR implementation}
+        \end{figure}
+        \begin{figure}
+            \includegraphics[width=.65\linewidth]{intel-tools/avx-advisor}
+            \caption{Vectorised SOR implementation}
+        \end{figure}
+    \end{center}
+\end{frame}
+\begin{frame}
+    \frametitle{Performance Comparison (2)}
+    \begin{center}
+        \begin{figure}
+            %\includegraphics[width=.65\linewidth]{intel-tools/scalar-advisor}
+            \caption{Runtime delays occur at natural boundaries}
+        \end{figure}
+        \begin{figure}
+            %\includegraphics[width=.65\linewidth]{intel-tools/avx-advisor}
+            \caption{Wall clock timings}
+        \end{figure}
+    \end{center}
+\end{frame}
+\begin{frame}
+    \frametitle{Solution Comparison}
+    \begin{itemize}
+        \item All solutions engineered to follow object-oriented principles
+            \begin{itemize}
+                \item Faster to organise code in CUDA due to features inherited
+                    from C++11, 14, and 17.
+                \item OpenMP approx. 1082 LOC; MPI 1940; CUDA 1333.
+            \end{itemize}
+        \item OpenMP and MPI solutions highly portable at runtime; CUDA
+            vendor-locked to proprietary NVIDIA technology.
+        \item All solutions can be subject to dynamic analysis for profiling and
+            correctness checks (e.g. Valgrind, ASan, \texttt{cuda-memchk}).
+        \item MPI and CUDA substantially more effort to interactively debug due
+            to distributed topology.
+        \item Build process and remote workflows homogenised by modern tools
+            \begin{itemize}
+                \item CMake
+                \item CLion
+                \item LLDB remote debugging
+                \item OneAPI userland tools
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+\section{}
+\begin{frame}
+    \frametitle{Thank you for listening}
+\end{frame}
 \end{document}
 
