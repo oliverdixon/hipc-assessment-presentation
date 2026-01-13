@@ -1,9 +1,13 @@
 % OWD 2026
 % HIPC Assessment Presentation
 
+% TODO: CUDA timings for graph
+% TODO: CUDA timings breakdowns
+% TODO: CUDA roofline plots
+
 \documentclass{beamer}
 
-\usepackage{listings, calc, booktabs}
+\usepackage{listings, calc, booktabs, pgfplots}
 \usepackage[en-GB]{datetime2}
 \usepackage[
     backend=biber,
@@ -11,6 +15,12 @@
     citestyle=authoryear,
     bibencoding=utf8
 ]{biblatex}
+
+\pgfplotsset{compat=1.18}
+\definecolor{seriallegend}{RGB}{179,179,255}
+\definecolor{openmplegend}{RGB}{255,179,179}
+\definecolor{mpilegend}{RGB}{236,217,198}
+\definecolor{cudalegend}{RGB}{128,128,128}
 
 \addbibresource{references.bib}
 \usetheme{CambridgeUS}
@@ -282,15 +292,15 @@
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & \\
-        OpenMP Runtime & & \\
+        Total & 6.8 & 100 \\
+        OpenMP barriers & 2.079 & 30.57 \\
+        OpenMP thread despatch & 1.85 & 27.22 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        SOR (pressure) & 1.38 & 20.29 \\
+        Poisson residual & 1.09 & 16.03
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/openmp_256x64}
+        \includegraphics[width=.8\linewidth]{roofline/openmp_256x64}
     \end{figure}
 \end{frame}
 \begin{frame}
@@ -299,15 +309,15 @@
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & \\
-        OpenMP Runtime & & \\
+        Total & 11.65 & 100 \\
+        OpenMP barriers & 2.67 & 22.89 \\
+        OpenMP thread despatch & 5.69 & 48.87 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        SOR (pressure) & 1.15 & 9.87 \\
+        Poisson residual & 1.57 & 13.47
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/openmp_512x128}
+        \includegraphics[width=.8\linewidth]{roofline/openmp_512x128}
     \end{figure}
 \end{frame}
 \begin{frame}
@@ -316,15 +326,15 @@
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & 43.51 & 100 \\
-        OpenMP Runtime &  & \\
+        Total & 42.02 & 100 \\
+        OpenMP barriers & 8.321 & 19.8 \\
+        OpenMP thread despatch & 20.9 & 49.73 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        SOR (pressure) & 5.02 & 11.95 \\
+        Poisson residual & 6.01 & 14.3
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/openmp_1024x256}
+        \includegraphics[width=.8\linewidth]{roofline/openmp_1024x256}
     \end{figure}
 \end{frame}
 \begin{frame}
@@ -333,14 +343,15 @@
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & 100 \\
+        Total & 1.1 & 100 \\
+        MPI startup and teardown & 0.68 & 60.1 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        SOR (pressure) & 0.03 & 2.7 \\
+        Halo exchanges & 0.14 & 12.4 \\
+        Reductions & 0.18 & 15.9
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/mpi_256x64}
+        \includegraphics[width=.8\linewidth]{roofline/mpi_256x64}
     \end{figure}
 \end{frame}
 \begin{frame}
@@ -349,14 +360,15 @@
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & 100 \\
+        Total & 2.51 & 100 \\
+        MPI startup and teardown & 0.63 & 24.9 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        SOR (pressure) & 0.27 & 10.7 \\
+        Halo exchanges & 0.52 & 20.6 \\
+        Reductions & 1.03 & 40.3
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/mpi_512x128}
+        \includegraphics[width=.8\linewidth]{roofline/mpi_512x128}
     \end{figure}
 \end{frame}
 \begin{frame}
@@ -365,14 +377,15 @@
     \begin{tabular}{lll}
         \textbf{Section} & \textbf{Time (s)} & \textbf{Time (\%)} \\
         \toprule
-        Total & & 100 \\
+        Total & 8.95 & 100 \\
+        MPI startup and teardown & 0.7 & 7.8 \\
         \midrule
-        SOR (pressure) & & \\
-        Tentative Velocities & & \\
-        Poisson Source & & 
+        SOR (pressure) & 2.68 & 29.8 \\
+        Halo exchanges & 1.33 & 14.8 \\
+        Reductions & 2.01 & 22.3
     \end{tabular}
     \begin{figure}
-        \includegraphics[width=.9\linewidth]{roofline/mpi_1024x256}
+        \includegraphics[width=.8\linewidth]{roofline/mpi_1024x256}
     \end{figure}
 \end{frame}
 \begin{frame}
@@ -440,14 +453,98 @@
 \begin{frame}
     \frametitle{Performance Comparison (2)}
     \begin{center}
-        \begin{figure}
-            %\includegraphics[width=.65\linewidth]{intel-tools/scalar-advisor}
-            \caption{Runtime delays occur at natural boundaries}
-        \end{figure}
-        \begin{figure}
-            %\includegraphics[width=.65\linewidth]{intel-tools/avx-advisor}
-            \caption{Wall clock timings}
-        \end{figure}
+        \begin{tikzpicture}
+        \begin{axis}[
+            ybar=4pt,
+            ylabel={Wall clock runtime (s)},
+            xlabel={Problem space size (px)},
+            symbolic x coords={256$\times$64,512$\times$128,1024$\times$256},
+            xtick=data,
+            ymin=0,
+            legend cell align=left,
+            legend pos=north west,
+            enlarge x limits=0.5,
+            height=0.8\textheight,
+            width=0.9\textwidth
+        ]
+
+        % Serial
+        \addplot[fill=seriallegend] coordinates {
+            (256$\times$64, 3.98)
+            (512$\times$128, 31.37)
+            (1024$\times$256, 382.97)
+        };
+
+        % OpenMP
+        \addplot[fill=openmplegend] coordinates {
+            (256$\times$64, 6.8)
+            (512$\times$128, 11.65)
+            (1024$\times$256, 42.02)
+        };
+
+        % MPI
+        \addplot[fill=mpilegend] coordinates {
+            (256$\times$64, 1.1)
+            (512$\times$128, 2.51)
+            (1024$\times$256, 8.95)
+        };
+
+        % CUDA
+        \addplot[fill=cudalegend] coordinates {
+            (256$\times$64, 0)
+            (512$\times$128, 0)
+            (1024$\times$256, 0)
+        };
+
+        \legend{Serial, OpenMP, MPI, CUDA}
+
+        \end{axis}
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+\begin{frame}
+    \frametitle{Performance Comparison (3)}
+    \begin{center}
+        \begin{tikzpicture}
+        \begin{axis}[
+            ybar=4pt,
+            ylabel={Wall clock runtime (s)},
+            xlabel={Problem space size (px)},
+            symbolic x coords={256$\times$64,512$\times$128,1024$\times$256},
+            xtick=data,
+            ymin=0,
+            legend cell align=left,
+            legend pos=north west,
+            enlarge x limits=0.5,
+            height=0.8\textheight,
+            width=0.9\textwidth
+        ]
+
+        % OpenMP
+        \addplot[fill=openmplegend] coordinates {
+            (256$\times$64, 6.8)
+            (512$\times$128, 11.65)
+            (1024$\times$256, 42.02)
+        };
+
+        % MPI
+        \addplot[fill=mpilegend] coordinates {
+            (256$\times$64, 1.1)
+            (512$\times$128, 2.51)
+            (1024$\times$256, 8.95)
+        };
+
+        % CUDA
+        \addplot[fill=cudalegend] coordinates {
+            (256$\times$64, 0)
+            (512$\times$128, 0)
+            (1024$\times$256, 0)
+        };
+
+        \legend{OpenMP, MPI, CUDA}
+
+        \end{axis}
+        \end{tikzpicture}
     \end{center}
 \end{frame}
 \begin{frame}
